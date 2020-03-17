@@ -3,11 +3,12 @@
             [parse_struct.common-types :refer :all]
             [parse_struct.core :refer [parse-type type-size pows2]]
             [clojure.data.json :as json]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [popen])
   (:import (java.nio.file Files Path)))
 
 (defn rand-range [s e]
-  (+ (rand-int (- e s)) s))
+  (+ (long (rand (- e s))) s))
 
 (defn half [n]
   (/ n 2))
@@ -46,10 +47,29 @@
                        8)}
    name))
 
+(def prim-generators {:int {true {1 #(i 8)
+                                  2 #(i 16)
+                                  4 #(i 32)}
+                          false  {1  #(u 8)
+                                  2 #(u 16)
+                                  4 #(u 32)}}
+                 :string   (partial #(pad-nulls (gen-name (rand-int %))
+                                              %))})
+
+(defn map-map [f m]
+  (into {}
+        (map (fn [[k v]]
+               [k (f v)])
+             m)))
+
 (defn gen-struct [spec]
-  (for [[name spec] spec]
-   (let [type (first (string/split name #"-"))]
-     ())))
+  (case (spec :type)
+    :int ((get-in prim-generators [:int (spec :signed) (spec :bytes)]))
+    :string ((prim-generators :string) (spec :bytes))
+    :array (for [_ (range (spec :len))]
+             (gen-struct (spec :element)))
+    :struct (into {}
+                  (map-map gen-struct (spec :definition)))))
 
 (def prims {"i8"    i8
             "u8"    u8
@@ -58,7 +78,7 @@
             "i32"   i32
             "u32"   u32
             "name8" name8})
-(defn gen-struct-def [max-children levels]
+(defn gen-struct-spec [max-children levels]
   (let [total-count  (rand-int max-children)
         nested-count (if (pos-int? levels)
                        (rand-int total-count)
@@ -70,10 +90,11 @@
       (cond
         (and (pos-int? levels)
              (pos-int? array-count)) {:type    :array
-                                      :element (gen-struct-def (dec levels))}
+                                      :len     (rand-int (max-children))
+                                      :element (gen-struct-spec max-children (dec levels))}
         (and (pos-int? levels)
              (pos-int? prim-count)) {:type       :struct
-                                     :definition (gen-struct-def (dec levels))}
+                                     :definition {:nested (gen-struct-spec max-children (dec levels))}}
         :else (rand-nth (vals prims)))
       {:type       :struct
        :definition (reduce
@@ -96,7 +117,8 @@
                             (recur (assoc res
                                      (str "array-" (uuid))
                                      {:type    :array
-                                      :element (gen-struct-def (dec levels))})
+                                      :len     (rand-int max-children)
+                                      :element (gen-struct-spec max-children (dec levels))})
                                    (dec left)))))
                       (fn [res]
                         (loop [res res
@@ -105,15 +127,19 @@
                             res
                             (recur (assoc res
                                      (str "struct-" (uuid))
-                                     (gen-struct-def (dec levels)))
+                                     (gen-struct-spec max-children (dec levels)))
                                    (dec left)))))])})))
+
+(defn unit-work []
+  (let [dump-spec (gen-struct-spec 5 2)
+        dump (gen-struct dump-spec)
+        dump-json (json/write-str dump)
+        spec-json (json/write-str dump-spec)]
+    ))
 
 (defn main []
   (doseq [_ (range 1)]
-    (let [dump-def (gen-struct-def 2)
-          dump (gen-struct dump-def)
-          dump-json (json/write-str dump)]
-      )))
+    (unit-work)))
 
 (defn -main [& args]
   (let [bs (vec (Files/readAllBytes (Path/of "test/dmp" (make-array String 0))))

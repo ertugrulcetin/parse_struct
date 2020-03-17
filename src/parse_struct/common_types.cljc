@@ -1,9 +1,11 @@
 (ns parse_struct.common-types)
 
-(def i8 {:type   :byte
+(def i8 {:type   :int
+         :bytes  1
          :signed true})
 
-(def u8 {:type   :byte
+(def u8 {:type   :int
+         :bytes  1
          :signed false})
 
 (def i16 {:type   :int
