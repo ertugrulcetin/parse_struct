@@ -4,7 +4,7 @@
             [parse_struct.core :refer [parse-type type-size pows2]]
             [clojure.data.json :as json]
             [clojure.string :as string]
-            [popen])
+            [popen :refer :all])
   (:import (java.nio.file Files Path)))
 
 (defn rand-range [s e]
@@ -132,19 +132,22 @@
 
 (defn unit-work []
   (let [dump-spec (gen-struct-spec 5 2)
+        spec-json (json/write-str dump-spec)
         dump (gen-struct dump-spec)
-        dump-json (json/write-str dump)
-        spec-json (json/write-str dump-spec)]
-    ))
+        dump-json (json/write-str dump)]
+    (let [cargo (popen ["cargo" "build" "--release"] :dir "test/dump-generator")]
+      (if (not (zero? (exit-code cargo)))
+        (println "cargo failed, fix dumper")
+        (let [dumper (popen ["dump-generator" spec-json dump-json] :dir "test/dump-generator/target/debug")]
+          (if (not (zero? (exit-code dumper)))
+            (println "dumper failed")
+            (let [dump (vec (stdout dumper))
+                  parsed (parse-type dump-spec dump)]
+              (when (not= parsed dump)
+                (println "a dump failed: ")
+                (println dump-spec)
+                (println dump)))))))))
 
-(defn main []
+(defn -main []
   (doseq [_ (range 1)]
     (unit-work)))
-
-(defn -main [& args]
-  (let [bs (vec (Files/readAllBytes (Path/of "test/dmp" (make-array String 0))))
-        parsed (parse-type dump-struct (subvec bs 2))]
-    (testing "short"
-      (is (= -32000 (parsed :s))))
-    (testing "unsigned short"
-      (is (= 33000 (parsed :us))))))
