@@ -5,7 +5,8 @@
             [clojure.data.json :as json]
             [clojure.string :as string]
             [popen :refer :all])
-  (:import (java.nio.file Files Path)))
+  (:import (java.nio.file Files Path)
+           (clojure.lang APersistentMap IPersistentVector)))
 
 (defn rand-range [s e]
   (+ (long (rand (- e s))) s))
@@ -130,18 +131,36 @@
                                      (gen-struct-spec max-children (dec levels)))
                                    (dec left)))))])})))
 
+(defn stringify-nums [dump]
+  (cond
+    (instance? Number dump) (str dump)
+    (instance? IPersistentMap dump) (map-map stringify-nums dump)
+    (instance? IPersistentVector dump) (map stringify-nums dump)
+    (throw (new Exception "wtf"))))
+
 (defn unit-work []
   (let [dump-spec (gen-struct-spec 5 2)
         spec-json (json/write-str dump-spec)
         dump (gen-struct dump-spec)
-        dump-json (json/write-str dump)]
-    (let [cargo (popen ["cargo" "build" "--release"] :dir "test/dump-generator")]
+        dump-nums-stringified (stringify-nums dump)
+        dump-json (json/write-str dump-nums-stringified)]
+    (let [cargo (popen ["cargo" "build"] :dir "test/dump-generator")]
       (if (not (zero? (exit-code cargo)))
         (println "cargo failed, fix dumper")
-        (let [dumper (popen ["dump-generator" spec-json dump-json] :dir "test/dump-generator/target/debug")]
+        (let [dumper (popen ["./test/dump-generator/target/debug/dump-generator" spec-json dump-json])]
           (if (not (zero? (exit-code dumper)))
             (println "dumper failed")
-            (let [dump (vec (stdout dumper))
+            (let [dump ((fn [is]
+                          (let [sz (type-size dump-spec)
+                                ba (byte-array (inc sz))
+                                read-count (.read is 0 sz)]
+                            (cond
+                              (not= read-count sz) (do
+                                                     (println "dump size: " read-count ", expected: " sz))
+                              (not (zero? (.read is 0 1))) (do
+                                                             (println "dump size larger than expected"))
+                              :else ba)))
+                        (.getInputStream is))
                   parsed (parse-type dump-spec dump)]
               (when (not= parsed dump)
                 (println "a dump failed: ")

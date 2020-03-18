@@ -13,6 +13,13 @@
    :coord-id {:mvn/version "1.0.0"},
    :include true,
    :reason :new-top-dep}
+  {:path [],
+   :lib popen/popen,
+   :coord {:mvn/version "0.3.1"},
+   :use-coord {:mvn/version "0.3.1"},
+   :coord-id {:mvn/version "0.3.1"},
+   :include true,
+   :reason :new-top-dep}
   {:path [org.clojure/clojure],
    :lib org.clojure/spec.alpha,
    :coord {:mvn/version "0.2.176"},
@@ -33,6 +40,13 @@
    :use-coord {:mvn/version "1.4.0"},
    :coord-id {:mvn/version "1.4.0"},
    :include false,
+   :reason :use-top}
+  {:path [popen/popen],
+   :lib org.clojure/clojure,
+   :coord {:mvn/version "1.8.0"},
+   :use-coord {:mvn/version "1.8.0"},
+   :coord-id {:mvn/version "1.8.0"},
+   :include false,
    :reason :use-top}],
  :vmap
  {org.clojure/clojure
@@ -48,6 +62,13 @@
     {:mvn/version "1.0.0", :deps/manifest :mvn}},
    :paths {{:mvn/version "1.0.0"} #{[]}},
    :select {:mvn/version "1.0.0"},
+   :top true},
+  popen/popen
+  {:versions
+   {{:mvn/version "0.3.1"}
+    {:mvn/version "0.3.1", :deps/manifest :mvn}},
+   :paths {{:mvn/version "0.3.1"} #{[]}},
+   :select {:mvn/version "0.3.1"},
    :top true},
   org.clojure/spec.alpha
   {:versions
