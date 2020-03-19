@@ -18,7 +18,7 @@
 (defn take-exactly [n coll]
   (if (pos-int? n)
     (if (empty? coll)
-      (throw (new Exception))
+      (throw (new Exception "seq doesn't have enough members"))
       (lazy-seq (cons (first coll)
                      (take-exactly (dec n)
                                    (rest coll)))))))
@@ -46,3 +46,11 @@
               (type-size (sd :element)))
     :struct (reduce + (map type-size (map second (sd :definition))))
     (sd :bytes)))
+
+(defn in-range [l n u]
+  (and (<= l n)
+       (< n u)))
+
+(defn zip-colls [& cs]
+  (partition (count cs)
+             (apply interleave cs)))

@@ -1,5 +1,6 @@
 (ns parse_struct.deserialize
-  (:require [parse_struct.utils :refer [split-n take-exactly pow pows2 bitCount type-size]])
+  (:require [parse_struct.utils :refer [split-n take-exactly pow pows2 bitCount type-size zip-colls]]
+            [clojure.spec.alpha :as s])
   (:import (java.nio ByteBuffer ByteOrder)))
 
 (defn parseInt64 [bytes]
