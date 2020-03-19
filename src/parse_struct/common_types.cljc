@@ -24,6 +24,14 @@
           :bytes  4
           :signed false})
 
+(def i64 {:type   :int
+          :bytes  8
+          :signed true})
+
+(def u64 {:type   :int
+          :bytes  8
+          :signed false})
+
 (def name8 {:type       :string
             :bytes      8
             :trim_nulls true})

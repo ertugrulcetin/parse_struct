@@ -2,4 +2,4 @@
            popen {:mvn/version "0.3.1"}
            pjstadig/humane-test-output {:mvn/version "0.10.0"}}
  :aliases {:test {:extra-paths ["test"]
-                  :main-opts   ["-m" "base"]}}}
+                  :main-opts   ["-m" "deserializing_test"]}}}

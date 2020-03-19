@@ -3,7 +3,7 @@
             [parse_struct.deserialize]
             [parse_struct.utils]))
 
-(def deserialize parse_struct.deserialize/deserialize)
+(def parse parse_struct.deserialize/deserialize)
 (def type-size parse_struct.utils/type-size)
 
 (def serialize parse-struct.serialize/serialize)

@@ -1,6 +1,6 @@
 (ns deserializing_test
   (:require [clojure.test :refer :all]
-            [parse_struct.core :refer [deserialize type-size]]
+            [parse_struct.core :refer [parse type-size]]
             [parse_struct.utils :refer [pow bitCount read-file]]
             [parse_struct.common-types :refer :all]
             [clojure.data.json :as json]
@@ -77,6 +77,15 @@
                             {:a -5
                              :c "anothe"})})
 
+(def dump8_def {:type       :struct
+                :definition {:a i64
+                             :b {:type    :array
+                                 :len     3
+                                 :element u64}}})
+
+(def dump8_data {:a -6472394858488348972
+                 :b (repeat 3 9823372036854775807)})
+
 (defn -main []
   (hto/activate!)
   (exit-code (popen ["sh" "-c" "rm test/data/*"]))
@@ -90,30 +99,34 @@
         (do
           (testing "dump 1"
             (let [bs (read-file "test/data/dmp1")
-                  parsed (deserialize dump1_def bs)]
+                  parsed (parse dump1_def bs)]
               (is (= parsed dump1_data))))
           (testing "dump 2"
             (let [bs (read-file "test/data/dmp2")
-                  parsed (deserialize dump2_def bs)]
+                  parsed (parse dump2_def bs)]
               (doseq [e parsed]
                 (is (= e dump1_data)))))
           (testing "dump 3"
             (let [bs (read-file "test/data/dmp3")
-                  parsed (deserialize dump3_def bs)]
+                  parsed (parse dump3_def bs)]
               (is (= parsed dump3_data))))
           (testing "dump 4"
             (let [bs (read-file "test/data/dmp4")
-                  parsed (deserialize dump4_def bs)]
+                  parsed (parse dump4_def bs)]
               (is (= parsed dump4_data))))
           (testing "dump 5"
             (let [bs (read-file "test/data/dmp5")
-                  parsed (deserialize dump5_def bs)]
+                  parsed (parse dump5_def bs)]
               (is (= parsed dump5_data))))
           (testing "dump 6"
             (let [bs (read-file "test/data/dmp6")
-                  parsed (deserialize dump6_def bs)]
+                  parsed (parse dump6_def bs)]
               (is (= parsed dump6_data))))
           (testing "dump 7"
             (let [bs (read-file "test/data/dmp7")
-                  parsed (deserialize dump7_def bs)]
-              (is (= parsed dump7_data)))))))))
+                  parsed (parse dump7_def bs)]
+              (is (= parsed dump7_data))))
+          (testing "dump 8"
+            (let [bs (read-file "test/data/dmp8")
+                  parsed (parse dump8_def bs)]
+              (is (= parsed dump8_data)))))))))

@@ -1,6 +1,9 @@
 (ns parse_struct.deserialize
-  (:require [parse_struct.utils :refer [split-n take-exactly pow bitCount type-size]])
+  (:require [parse_struct.utils :refer [split-n take-exactly pow pows2 bitCount type-size]])
   (:import (java.nio ByteBuffer ByteOrder)))
+
+(defn parseInt64 [bytes]
+  (.getLong (.order (ByteBuffer/wrap (byte-array bytes)) ByteOrder/LITTLE_ENDIAN)))
 
 (defn parseInt32 [bytes]
   (.getInt (.order (ByteBuffer/wrap (byte-array bytes)) ByteOrder/LITTLE_ENDIAN)))
@@ -15,15 +18,17 @@
   (let [target-type (if (< bits 64)
                       long
                       bigint)
+        offset (pows2 bits)
         numarg (gensym)]
     `(fn [~numarg]
-      (if (< ~numarg 0)
-        (+ (~target-type ~numarg) (pow 2 ~bits))
-        ~numarg))))
+       (if (< ~numarg 0)
+         (+ (~target-type ~numarg) ~offset)
+         ~numarg))))
 
 (def intParsers {1 [parseInt8 (make-unsigned-maker 8)]
                  2 [parseInt16 (make-unsigned-maker 16)]
-                 4 [parseInt32 (make-unsigned-maker 32)]})
+                 4 [parseInt32 (make-unsigned-maker 32)]
+                 8 [parseInt64 (make-unsigned-maker 64)]})
 
 (defn parse-int [{bc :bytes signed? :signed} data]
   (let [[parser sign-handler] (intParsers bc)
@@ -38,7 +43,7 @@
         trimmed (if (not= trim_nulls? false)
                   (take-while #(not= 0 %) chunk)
                   chunk)]
-    (new String (byte-array trimmed))))
+    (new String (byte-array trimmed) "ASCII")))
 
 (declare parse-struct)
 (declare parse-array)

@@ -26,12 +26,13 @@
 
 (def pows2 {8 256
             16 65536
-            32 4294967296})
+            32 4294967296
+            64 18446744073709551616})
 
 (defn pow [b e]
   (reduce
     (fn [r _] (* r b))
-    1 (range e)))
+    1N (range e)))
 
 (defn bitCount [num]
   (cond

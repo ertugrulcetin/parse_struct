@@ -40,6 +40,14 @@ struct S4 {
     b: [S2; 3]
 }
 
+#[derive(Debug, Clone, Copy)]
+#[repr(packed)]
+struct S5 {
+    a: i64,
+    b: [u64; 3]
+}
+
+
 unsafe fn any_as_u8_slice<T: Sized>(p: &T) -> &[u8] {
     ::std::slice::from_raw_parts(
         (p as *const T) as *const u8,
@@ -101,4 +109,10 @@ fn main() {
         }; 3]
     };
     dump_to_file(&s4, "test/data/dmp7");
+
+    let s5 = S5 {
+        a: -6472394858488348972,
+        b: [9823372036854775807; 3]
+    };
+    dump_to_file(&s5, "test/data/dmp8")
 }
