@@ -44,7 +44,9 @@ struct S4 {
 #[repr(packed)]
 struct S5 {
     a: i64,
-    b: [u64; 3]
+    b: [u64; 3],
+    c: f32,
+    d: [f64; 5]
 }
 
 
@@ -112,7 +114,9 @@ fn main() {
 
     let s5 = S5 {
         a: -6472394858488348972,
-        b: [9823372036854775807; 3]
+        b: [9823372036854775807; 3],
+        c: 128.0,
+        d: [256.0; 5]
     };
-    dump_to_file(&s5, "test/data/dmp8")
+    dump_to_file(&s5, "test/data/dmp8");
 }

@@ -38,6 +38,13 @@
                       parsedInt)]
     signHandled))
 
+(defn parse-float [{bc :bytes} data]
+  (let [bb (.order (ByteBuffer/wrap (byte-array (take-exactly bc data))) ByteOrder/LITTLE_ENDIAN)]
+   (case bc
+     4 (.getFloat bb)
+     8 (.getDouble bb)
+     (throw (new IllegalArgumentException "Floats can have 4 or 8 bytes")))))
+
 (defn parse-string [{bc :bytes trim_nulls? :trim_nulls} data]
   (let [chunk (take-exactly bc data)
         trimmed (if (not= trim_nulls? false)
@@ -75,6 +82,7 @@
   ((parsers (spec :type)) spec data))
 
 (def parsers {:int    parse-int
+              :float  parse-float
               :string parse-string
               :array  parse-array
               :struct parse-struct

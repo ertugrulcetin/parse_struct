@@ -32,6 +32,12 @@
           :bytes  8
           :signed false})
 
+(def f32 {:type :float
+          :bytes 4})
+
+(def f64 {:type :float
+          :bytes 8})
+
 (def name8 {:type       :string
             :bytes      8
             :trim_nulls true})

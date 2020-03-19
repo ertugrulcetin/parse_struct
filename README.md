@@ -33,5 +33,4 @@ Structs and arrays can be arbitrarily nested.
 ### TODO:
 
 * Configurable endianness
-* float
 * serializing

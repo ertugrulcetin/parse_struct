@@ -81,10 +81,16 @@
                 :definition {:a i64
                              :b {:type    :array
                                  :len     3
-                                 :element u64}}})
+                                 :element u64}
+                             :c f32
+                             :d {:type    :array
+                                 :len     5
+                                 :element f64}}})
 
 (def dump8_data {:a -6472394858488348972
-                 :b (repeat 3 9823372036854775807)})
+                 :b (repeat 3 9823372036854775807)
+                 :c 128.0
+                 :d (repeat 5 256.0)})
 
 (defn -main []
   (hto/activate!)
@@ -100,33 +106,33 @@
           (testing "dump 1"
             (let [bs (read-file "test/data/dmp1")
                   parsed (parse dump1_def bs)]
-              (is (= parsed dump1_data))))
+              (is (= dump1_data parsed))))
           (testing "dump 2"
             (let [bs (read-file "test/data/dmp2")
                   parsed (parse dump2_def bs)]
               (doseq [e parsed]
-                (is (= e dump1_data)))))
+                (is (= dump1_data e)))))
           (testing "dump 3"
             (let [bs (read-file "test/data/dmp3")
                   parsed (parse dump3_def bs)]
-              (is (= parsed dump3_data))))
+              (is (= dump3_data parsed))))
           (testing "dump 4"
             (let [bs (read-file "test/data/dmp4")
                   parsed (parse dump4_def bs)]
-              (is (= parsed dump4_data))))
+              (is (= dump4_data parsed))))
           (testing "dump 5"
             (let [bs (read-file "test/data/dmp5")
                   parsed (parse dump5_def bs)]
-              (is (= parsed dump5_data))))
+              (is (= dump5_data parsed))))
           (testing "dump 6"
             (let [bs (read-file "test/data/dmp6")
                   parsed (parse dump6_def bs)]
-              (is (= parsed dump6_data))))
+              (is (= dump6_data parsed))))
           (testing "dump 7"
             (let [bs (read-file "test/data/dmp7")
                   parsed (parse dump7_def bs)]
-              (is (= parsed dump7_data))))
+              (is (= dump7_data parsed))))
           (testing "dump 8"
             (let [bs (read-file "test/data/dmp8")
                   parsed (parse dump8_def bs)]
-              (is (= parsed dump8_data)))))))))
+              (is (= dump8_data parsed)))))))))
