@@ -34,3 +34,7 @@ Structs and arrays can be arbitrarily nested.
 
 * Configurable endianness
 * serializing
+
+### Note:
+
+You'll need to have `rustc` installed in order to run tests.
