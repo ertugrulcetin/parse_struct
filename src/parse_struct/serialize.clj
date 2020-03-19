@@ -30,4 +30,5 @@
     (throw (new IllegalArgumentException "unknown :type"))))
 
 (defn serialize [spec data]
-  ((serializer (spec :type)) spec data))
+  #_((serializer (spec :type)) spec data)
+  (throw (new UnsupportedOperationException)))

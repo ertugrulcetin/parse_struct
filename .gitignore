@@ -19,3 +19,5 @@ pom.xml.asc
 .cpcache/
 .clj-kondo/.cache/
 
+test/data
+lsp

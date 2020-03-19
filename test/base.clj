@@ -1,13 +1,13 @@
 (ns base
   (:require [clojure.test :refer :all]
             [parse_struct.common-types :refer :all]
-            [parse_struct.utils :refer [pows2 pow]]
-            [parse_struct.deserialize :refer [deserialize type-size]]
+            [parse_struct.utils :refer [pows2 pow type-size]]
+            [parse_struct.deserialize :refer [deserialize]]
             [clojure.data.json :as json]
             [clojure.string :as string]
             [popen :refer :all])
   (:import (java.nio.file Files Path)
-           (clojure.lang APersistentMap IPersistentVector)))
+           (clojure.lang APersistentMap IPersistentVector IPersistentMap PersistentQueue)))
 
 (defn rand-range [s e]
   (+ (long (rand (- e s))) s))
@@ -49,14 +49,14 @@
                        8)}
    name))
 
-(def prim-generators {:int {true {1 #(i 8)
-                                  2 #(i 16)
-                                  4 #(i 32)}
-                          false  {1  #(u 8)
-                                  2 #(u 16)
-                                  4 #(u 32)}}
-                 :string   (partial #(pad-nulls (gen-name (rand-int %))
-                                              %))})
+(def prim-generators {:int    {true  {1 #(i 8)
+                                      2 #(i 16)
+                                      4 #(i 32)}
+                               false {1 #(u 8)
+                                      2 #(u 16)
+                                      4 #(u 32)}}
+                      :string (partial #(pad-nulls (gen-name (rand-int %))
+                                                   %))})
 
 (defn map-map [f m]
   (into {}
@@ -73,6 +73,17 @@
     :struct (into {}
                   (map-map gen-struct (spec :definition)))))
 
+(defn type-identifier [name]
+  (or ({i8 "i8"} name)
+      ))
+
+(defn gen-structs-flattened [spec]
+  (loop [defs (list)
+         left PersistentQueue/EMPTY
+         next_id 5]
+    (if (empty? left)
+      (let [next (first left)]))))
+
 (def prims {"i8"    i8
             "u8"    u8
             "i16"   i16
@@ -80,9 +91,9 @@
             "i32"   i32
             "u32"   u32
             "name8" name8})
-(defn gen-struct-spec [max-children levels]
-  (let [total-count  (rand-int max-children)
-        nested-count (if (pos-int? levels)
+(defn gen-struct-spec [max-children max-depth]
+  (let [total-count (inc (rand-int max-children))
+        nested-count (if (pos-int? max-depth)
                        (rand-int total-count)
                        0)
         prim-count   (- total-count nested-count)
@@ -90,14 +101,14 @@
         struct-count (- nested-count array-count)]
     (if (= total-count 1)
       (cond
-        (and (pos-int? levels)
+        (and (pos-int? max-depth)
              (pos-int? array-count)) {:type    :array
                                       :len     (rand-int (max-children))
-                                      :element (gen-struct-spec max-children (dec levels))}
-        (and (pos-int? levels)
+                                      :element (gen-struct-spec max-children (dec max-depth))}
+        (and (pos-int? max-depth)
              (pos-int? prim-count)) {:type       :struct
-                                     :definition {:nested (gen-struct-spec max-children (dec levels))}}
-        :else (rand-nth (vals prims)))
+                                     :definition {:nested (gen-struct-spec max-children (dec max-depth))}}
+        :else (recur max-children max-depth))
       {:type       :struct
        :definition (reduce
                      (fn [res f]
@@ -120,7 +131,7 @@
                                      (str "array-" (uuid))
                                      {:type    :array
                                       :len     (rand-int max-children)
-                                      :element (gen-struct-spec max-children (dec levels))})
+                                      :element (gen-struct-spec max-children (dec max-depth))})
                                    (dec left)))))
                       (fn [res]
                         (loop [res res
@@ -129,7 +140,7 @@
                             res
                             (recur (assoc res
                                      (str "struct-" (uuid))
-                                     (gen-struct-spec max-children (dec levels)))
+                                     (gen-struct-spec max-children (dec max-depth)))
                                    (dec left)))))])})))
 
 (defn stringify-nums [dump]
@@ -137,7 +148,7 @@
     (instance? Number dump) (str dump)
     (instance? IPersistentMap dump) (map-map stringify-nums dump)
     (instance? IPersistentVector dump) (map stringify-nums dump)
-    (throw (new Exception "wtf"))))
+    :else (throw (new Exception "wtf"))))
 
 (defn unit-work []
   (let [dump-spec (gen-struct-spec 5 2)
@@ -161,20 +172,20 @@
                               (not (zero? (.read is 0 1))) (do
                                                              (println "dump size larger than expected"))
                               :else ba)))
-                        (.getInputStream is))
+                        (.getInputStream dumper))
                   parsed (deserialize dump-spec dump)]
               (when (not= parsed dump)
                 (println "a dump failed: ")
                 (println dump-spec)
                 (println dump)))))))))
 
-(defn integration-unit []
-  (let [dump-spec (gen-struct-spec 5 2)
-        dump (gen-struct dump-spec)
-        bts (serialize-type dump)
-        new-dump (deserialize dump-spec bts)]
-    (when (not (= dump new-dump))
-      (println "serialize-deserialize loop failed for a dump: "))))
+;(defn integration-unit []
+;  (let [dump-spec (gen-struct-spec 5 2)
+;        dump (gen-struct dump-spec)
+;        bts (serialize dump)
+;        new-dump (deserialize dump-spec bts)]
+;    (when (not (= dump new-dump))
+;      (println "serialize-deserialize loop failed for a dump: "))))
 
 (defn -main []
   (doseq [_ (range 1)]
