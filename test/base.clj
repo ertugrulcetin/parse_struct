@@ -1,7 +1,8 @@
 (ns base
   (:require [clojure.test :refer :all]
             [parse_struct.common-types :refer :all]
-            [parse_struct.core :refer [parse-type type-size pows2]]
+            [parse_struct.utils :refer [pows2 pow]]
+            [parse_struct.deserialize :refer [deserialize type-size]]
             [clojure.data.json :as json]
             [clojure.string :as string]
             [popen :refer :all])
@@ -18,12 +19,12 @@
   (* -1 n))
 
 (defn i [bits]
-  (rand-range (neg (half (pows2 bits)))
-              (half (pows2 bits))))
+  (let [signed-limit (pow 2 (dec bits))]
+    (rand-range (neg signed-limit)
+                signed-limit)))
 
 (defn u [bits]
-  (rand-range 0
-              (pows2 bits)))
+  (rand-range 0 (pow 2 bits)))
 
 (def max_char (inc (int (Character/MAX_VALUE))))
 
@@ -161,12 +162,20 @@
                                                              (println "dump size larger than expected"))
                               :else ba)))
                         (.getInputStream is))
-                  parsed (parse-type dump-spec dump)]
+                  parsed (deserialize dump-spec dump)]
               (when (not= parsed dump)
                 (println "a dump failed: ")
                 (println dump-spec)
                 (println dump)))))))))
 
+(defn integration-unit []
+  (let [dump-spec (gen-struct-spec 5 2)
+        dump (gen-struct dump-spec)
+        bts (serialize-type dump)
+        new-dump (deserialize dump-spec bts)]
+    (when (not (= dump new-dump))
+      (println "serialize-deserialize loop failed for a dump: "))))
+
 (defn -main []
   (doseq [_ (range 1)]
-    (unit-work)))
+    (integration-unit)))
