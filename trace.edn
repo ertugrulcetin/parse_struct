@@ -20,6 +20,13 @@
    :coord-id {:mvn/version "0.3.1"},
    :include true,
    :reason :new-top-dep}
+  {:path [],
+   :lib pjstadig/humane-test-output,
+   :coord {:mvn/version "0.10.0"},
+   :use-coord {:mvn/version "0.10.0"},
+   :coord-id {:mvn/version "0.10.0"},
+   :include true,
+   :reason :new-top-dep}
   {:path [org.clojure/clojure],
    :lib org.clojure/spec.alpha,
    :coord {:mvn/version "0.2.176"},
@@ -69,6 +76,13 @@
     {:mvn/version "0.3.1", :deps/manifest :mvn}},
    :paths {{:mvn/version "0.3.1"} #{[]}},
    :select {:mvn/version "0.3.1"},
+   :top true},
+  pjstadig/humane-test-output
+  {:versions
+   {{:mvn/version "0.10.0"}
+    {:mvn/version "0.10.0", :deps/manifest :mvn}},
+   :paths {{:mvn/version "0.10.0"} #{[]}},
+   :select {:mvn/version "0.10.0"},
    :top true},
   org.clojure/spec.alpha
   {:versions

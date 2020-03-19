@@ -1,7 +1,8 @@
 (ns deserializing_test
   (:require [clojure.test :refer :all]
             [parse_struct.core :refer [parse type-size]]
-            [parse_struct.utils :refer [pow bitCount read-file]]
+            [parse_struct.utils :refer [pow bitCount]]
+            [test_utils :refer [read-file]]
             [parse_struct.common-types :refer :all]
             [clojure.data.json :as json]
             [popen :refer :all]

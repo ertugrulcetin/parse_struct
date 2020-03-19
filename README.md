@@ -33,8 +33,10 @@ Structs and arrays can be arbitrarily nested.
 ### TODO:
 
 * Configurable endianness
-* serializing
+* Serializing
+* Return seq when parsing structs
+* support cljs
 
 ### Note:
 
-You'll need to have `rustc` installed in order to run tests.
+You'll need to have `rustc` installed to run tests.

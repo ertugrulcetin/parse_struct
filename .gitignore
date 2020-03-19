@@ -3,6 +3,7 @@
 ### Created by https://www.gitignore.io
 ### Clojure ###
 pom.xml
+settings.xml
 pom.xml.asc
 *.jar
 *.class

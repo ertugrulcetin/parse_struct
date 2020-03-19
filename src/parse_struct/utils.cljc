@@ -1,5 +1,4 @@
-(ns parse_struct.utils
-  (:import (java.nio.file Files Path)))
+(ns parse_struct.utils)
 
 (defn split-n [n coll]
   (loop [fst (transient [])
@@ -47,7 +46,3 @@
               (type-size (sd :element)))
     :struct (reduce + (map type-size (map second (sd :definition))))
     (sd :bytes)))
-
-(defn read-file [fl]
-  (Files/readAllBytes (Path/of fl (make-array String 0))))
-
