@@ -60,7 +60,9 @@
             size (type-size spec)
             [curr_chunk next_data_left] (split-n size data_left)
             val (deserialize spec curr_chunk)]
-        (recur (assoc res name val)
+        (recur (if (= (spec :type) :padding)
+                 res
+                 (assoc res name val))
                (rest items_left)
                next_data_left)))))
 
@@ -70,4 +72,5 @@
 (def parsers {:int    parse-int
               :string parse-string
               :array  parse-array
-              :struct parse-struct})
+              :struct parse-struct
+              :padding (fn [_ _])})
