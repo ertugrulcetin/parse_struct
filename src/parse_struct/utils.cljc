@@ -12,6 +12,11 @@
                (rest scnd)
                (dec left))))))
 
+(defn m-partition [n coll]
+  (let [[a b] (split-n n coll)]
+    (lazy-seq (cons a
+                    ()))))
+
 (defn subvec-n [v s n]
   (subvec v s (+ s n)))
 

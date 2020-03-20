@@ -109,5 +109,5 @@
 
 (deftest roundtrip
   (hto/activate!)
-  (doseq [id (range 100)]
+  (doseq [id (range 1000)]
     (unit-work id)))
