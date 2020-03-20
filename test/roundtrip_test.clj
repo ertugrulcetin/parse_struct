@@ -1,14 +1,11 @@
 (ns roundtrip_test
   (:require [clojure.test :refer :all]
-            [parse_struct.common-types :refer :all]
             [parse_struct.utils :refer [pow type-size]]
             [parse_struct.deserialize :refer [deserialize]]
             [parse_struct.serialize :refer [serialize]]
-            [clojure.string :as string]
+            [parse_struct.common-types :refer :all]
             [popen :refer :all]
-            [pjstadig.humane-test-output :as hto])
-  (:import (java.nio.file Files Path)
-           (clojure.lang APersistentMap IPersistentVector IPersistentMap PersistentQueue)))
+            [pjstadig.humane-test-output :as hto]))
 
 (defn rand-range [s e]
   (+ (long (rand (- e s))) s))
@@ -90,9 +87,9 @@
 
 (defn unit-work [id]
   (testing (str "roundtrip number: " id)
-    (let [spec (gen-rand-spec {:max-array-len       5
-                               :max-struct-children 5
-                               :max-depth           3})
+    (let [spec (gen-rand-spec {:max-array-len       (inc (rand-int 10))
+                               :max-struct-children (inc (rand-int 10))
+                               :max-depth           (inc (rand-int 3))})
           value (gen-struct-val spec)]
       (is (= value (deserialize spec (serialize spec value)))
           (let [spec_file (str "test/data/failed_spec_" id ".edn")
