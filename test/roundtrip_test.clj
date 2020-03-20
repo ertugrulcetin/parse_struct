@@ -36,7 +36,7 @@
   (apply str (repeatedly 10 #(rand-nth "qwertyuiopasdghklzxcvbnm1234567890"))))
 
 (defn pad-nulls [s n]
-  (new String (take n (concat s (repeat (char 0)))) "ASCII"))
+  (apply str (take n (concat s (repeat (char 0))))))
 
 (def prim-generators {:int    {true  {1 #(i 8)
                                       2 #(i 16)
@@ -44,13 +44,14 @@
                                false {1 #(u 8)
                                       2 #(u 16)
                                       4 #(u 32)}}
-                      :string (partial #(pad-nulls (gen-name (rand-int %))
-                                                   %))})
+                      :string {true  #(apply str (gen-name (rand-int %)))
+                               false #(pad-nulls (gen-name (rand-int %))
+                                                 %)}})
 
 (defn gen-struct-val [spec]
   (case (spec :type)
     :int ((get-in prim-generators [:int (spec :signed) (spec :bytes)]))
-    :string ((prim-generators :string) (spec :bytes))
+    :string ((get-in prim-generators [:string (spec :trim_nulls)]) (spec :bytes))
     :array (for [_ (range (spec :len))]
              (gen-struct-val (spec :element)))
     :struct (into {}
@@ -109,7 +110,3 @@
 (deftest roundtrip
   (doseq [id (range 100)]
     (unit-work id)))
-
-(defn -main []
-  (doseq [_ (range 1)]
-    ))
