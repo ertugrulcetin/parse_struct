@@ -59,9 +59,12 @@
 (declare parsers)
 
 (defn parse-array [{ed :element n :len} data]
-  (map
-    (partial deserialize ed)
-    (take-exactly n (partition (type-size ed) data))))
+  (let [sz (type-size ed)]
+    (if (zero? sz)
+      (repeat n [])
+      (map
+        (partial deserialize ed)
+        (take-exactly n (partition sz data))))))
 
 (defn parse-struct [{definition :definition} data]
   (loop [res {}

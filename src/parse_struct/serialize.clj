@@ -97,11 +97,11 @@
 (declare serialize)
 
 (defn struct->bytes [{items :definition} value]
-  (if (not (= (map first
-                   (filter (fn [[_ spec]]
-                             (not= :padding (spec :type)))
-                           items))
-              (keys value)))
+  (if (not (= (set (map first
+                    (filter (fn [[_ spec]]
+                              (not= :padding (spec :type)))
+                            items)))
+              (set (keys value))))
     (throw (new IllegalArgumentException value))
     (apply concat (for [[name spec] items]
                     (serialize spec (value name))))))
