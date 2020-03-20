@@ -1,4 +1,4 @@
-(ns roundtrip-test
+(ns roundtrip_test
   (:require [clojure.test :refer :all]
             [parse_struct.common-types :refer :all]
             [parse_struct.utils :refer [pow type-size]]
@@ -30,7 +30,7 @@
 (def max_char (inc (int (Character/MAX_VALUE))))
 (defn gen-name [n]
   (for [_ (range n)]
-    (char (rand-int 128))))
+    (char (inc (rand-int 127)))))
 
 (defn uuid []
   (apply str (repeatedly 10 #(rand-nth "qwertyuiopasdghklzxcvbnm1234567890"))))
@@ -103,10 +103,11 @@
                  "spec saved to: " spec_file "\n"
                  "value saved to: " value_file))))))
 
-(defn get-data []
-  (def a (read-string (slurp "test/data/failed_spec_10.edn")))
-  (def b (read-string (slurp "test/data/failed_value_10.edn"))))
+(defn get-data [id]
+  (def a (read-string (slurp (str "test/data/failed_spec_" id ".edn"))))
+  (def b (read-string (slurp (str "test/data/failed_value_" id ".edn")))))
 
 (deftest roundtrip
+  (hto/activate!)
   (doseq [id (range 100)]
     (unit-work id)))

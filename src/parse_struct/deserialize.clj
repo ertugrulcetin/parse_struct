@@ -61,7 +61,9 @@
 (defn parse-array [{ed :element n :len} data]
   (let [sz (type-size ed)]
     (if (zero? sz)
-      (repeat n [])
+      (repeat n (case (ed :type)
+                  :array []
+                  :struct {}))
       (map
         (partial deserialize ed)
         (take-exactly n (partition sz data))))))
