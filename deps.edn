@@ -2,7 +2,9 @@
            popen                       {:mvn/version "0.3.1"}
            pjstadig/humane-test-output {:mvn/version "0.10.0"}}
  :aliases {:test {:extra-paths ["test"]
-                  :main-opts   ["-m" "deserializing_test"]}
+                  :main-opts   ["-m" "all-tests"]}
+           :test-setup {:extra-paths ["test"]
+                        :main-opts ["-m" "test-setup"]}
            :pack {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
                                                 :sha     "c70740ffc10805f34836da2160fa1899601fac02"}}
                   :main-opts  ["-m" "mach.pack.alpha.skinny"]}}}
