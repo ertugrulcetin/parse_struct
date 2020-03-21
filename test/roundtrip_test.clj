@@ -24,6 +24,17 @@
 (defn u [bits]
   (rand-range 0 (pow 2 bits)))
 
+(defn lu []
+  (bigint (rand (pow 2 64))))
+
+(defn l []
+  (- (lu) Long/MAX_VALUE))
+
+(defn f []
+  (float (* (rand) Float/MAX_VALUE)))
+(defn d []
+  (* (rand) Double/MAX_VALUE))
+
 (def max_char (inc (int (Character/MAX_VALUE))))
 (defn gen-name [n]
   (for [_ (range n)]
@@ -37,10 +48,14 @@
 
 (def prim-generators {:int    {true  {1 #(i 8)
                                       2 #(i 16)
-                                      4 #(i 32)}
+                                      4 #(i 32)
+                                      8 l}
                                false {1 #(u 8)
                                       2 #(u 16)
-                                      4 #(u 32)}}
+                                      4 #(u 32)
+                                      8 lu}}
+                      :float  {4 f
+                               8 d}
                       :string {true  #(apply str (gen-name (rand-int %)))
                                false #(pad-nulls (gen-name (rand-int %))
                                                  %)}})
@@ -49,23 +64,31 @@
   (case (spec :type)
     :int ((get-in prim-generators [:int (spec :signed) (spec :bytes)]))
     :string ((get-in prim-generators [:string (spec :trim_nulls)]) (spec :bytes))
+    :float ((get-in prim-generators [:float (spec :bytes)]))
     :array (for [_ (range (spec :len))]
              (gen-struct-val (spec :element)))
     :struct (into {}
                   (map (fn [[name value]] [name (gen-struct-val value)]) (spec :definition)))))
 
-(def prims {"i8"    i8
-            "u8"    u8
-            "i16"   i16
-            "u16"   u16
-            "i32"   i32
-            "u32"   u32
-            "name8" name8})
+(def num_prims [i8
+                u8
+                i16
+                u16
+                i32
+                u32
+                i64
+                u64
+                f32
+                f64])
 
 (declare gen-rand-spec)
 
 (defn gen-rand-prim-spec [_]
-  (rand-nth (vals prims)))
+  (if (zero? (rand-int 10))
+    {:type       :string
+     :bytes      (rand-int 20)
+     :trim_nulls (zero? (rand-int 2))}
+    (rand-nth num_prims)))
 
 (defn gen-rand-array-spec [{max-len :max-array-len :as characteristics}]
   {:type    :array
