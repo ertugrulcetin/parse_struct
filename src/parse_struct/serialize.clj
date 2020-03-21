@@ -19,8 +19,6 @@
                  2 short
                  4 int
                  8 long} size)
-        max_unsigned (pow 2 (* 8 size))
-        signed?-arg (gensym)
         value-arg (gensym)
         bb-var (gensym)]
     `(fn [~value-arg]

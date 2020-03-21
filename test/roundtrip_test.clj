@@ -17,16 +17,20 @@
   (* -1 n))
 
 (defn i [bits]
-  (let [signed-limit (pow 2 (dec bits))]
-    (rand-range (neg signed-limit)
-                signed-limit)))
+  (let [up-limit (pow 2 (dec bits))
+        down-limit (neg up-limit)]
+    (fn []
+      (rand-range down-limit
+                  up-limit))))
 
 (defn u [bits]
-  (rand-range 0 (pow 2 bits)))
+  (let [up-limit (pow 2 bits)]
+    (fn []
+      (rand-range 0
+                  up-limit))))
 
 (defn lu []
   (bigint (rand (pow 2 64))))
-
 (defn l []
   (- (lu) Long/MAX_VALUE))
 
@@ -46,13 +50,13 @@
 (defn pad-nulls [s n]
   (apply str (take n (concat s (repeat (char 0))))))
 
-(def prim-generators {:int    {true  {1 #(i 8)
-                                      2 #(i 16)
-                                      4 #(i 32)
+(def prim-generators {:int    {true  {1 (i 8)
+                                      2 (i 16)
+                                      4 (i 32)
                                       8 l}
-                               false {1 #(u 8)
-                                      2 #(u 16)
-                                      4 #(u 32)
+                               false {1 (u 8)
+                                      2 (u 16)
+                                      4 (u 32)
                                       8 lu}}
                       :float  {4 f
                                8 d}
