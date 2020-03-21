@@ -82,8 +82,64 @@
                (rest items_left)
                next_data_left)))))
 
+(defmulti parse (fn [spec _] (spec :type)))
+
+(defmethod parse :float
+  [{bc :bytes} data]
+  (let [bb (.order (ByteBuffer/wrap (byte-array (take-exactly bc data))) ByteOrder/LITTLE_ENDIAN)]
+    (case bc
+      4 (.getFloat bb)
+      8 (.getDouble bb)
+      (throw (new IllegalArgumentException "Floats can have 4 or 8 bytes")))))
+
+(defmethod parse :int
+  [{bc :bytes signed? :signed} data]
+  (let [[parser sign-handler] (intParsers bc)
+        parsedInt (parser (take-exactly bc data))
+        signHandled (if (not signed?)
+                      (sign-handler parsedInt)
+                      parsedInt)]
+    signHandled))
+
+(defmethod parse :string
+  [{bc :bytes trim_nulls? :trim_nulls} data]
+  (let [chunk (take-exactly bc data)
+        trimmed (if (not= trim_nulls? false)
+                  (take-while #(not= 0 %) chunk)
+                  chunk)]
+    (new String (byte-array trimmed) "ASCII")))
+
+(defmethod parse :array
+  [{ed :element n :len} data]
+  (map
+    (partial parse ed)
+    (take-exactly n (let [sz (type-size ed)]
+                      (if (zero? sz)
+                        (repeat n [])
+                        (partition sz data))))))
+
+(defmethod parse :struct
+  [{definition :definition} data]
+  (loop [res {}
+         items_left definition
+         data_left data]
+    (if (empty? items_left)
+      res
+      (let [[name spec] (first items_left)
+            size (type-size spec)
+            [curr_chunk next_data_left] (split-n size data_left)
+            val (parse spec curr_chunk)]
+        (recur (if (= (spec :type) :padding)
+                 res
+                 (assoc res name val))
+               (rest items_left)
+               next_data_left)))))
+
+(defmethod parse :padding
+  [_ _])
+
 (defn deserialize [spec data]
-  ((parsers (spec :type)) spec data))
+  (parse spec data))
 
 (def parsers {:int    parse-int
               :float  parse-float
