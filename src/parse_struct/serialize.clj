@@ -63,8 +63,10 @@
                    4 (make-uint-writer 4)
                    8 (make-uint-writer 8)})
 
-;;;
-(defn int->bytes [{bc :bytes signed? :signed} value]
+(defmulti serialize (fn [spec _] (spec :type)))
+
+(defmethod serialize :int
+  [{bc :bytes signed? :signed} value]
   (((if signed?
       int-writers uint-writers) bc) value))
 
@@ -78,23 +80,23 @@
        (.order ~bb-var ByteOrder/LITTLE_ENDIAN)
        (~putter ~bb-var ~val-arg)
        (.array ~bb-var)))))
+
 (def float-writers {4 (make-float-writer 4)
                     8 (make-float-writer 8)})
-;;;
-(defn float->bytes [{bc :bytes} value]
+
+(defmethod serialize :float [{bc :bytes} value]
   ((float-writers bc) value))
 
-;;;
-(defn string->bytes [{bc :bytes} value]
+(defmethod serialize :string
+  [{bc :bytes} value]
   (if (> (count value) bc)
     (throw (new IllegalArgumentException (str "string: \"" value "\" is longer than the allotted space (" bc " bytes)")))
     (if (not (every? #(<= 0 (int %) 127) value))
       (throw (new IllegalArgumentException (str "string: \"" value "\" is not ascii")))
       (concat (.getBytes value) (repeat (- bc (count value)) (byte 0))))))
 
-(declare serialize)
-
-(defn struct->bytes [{items :definition} value]
+(defmethod serialize :struct
+  [{items :definition} value]
   (if (not (= (set (map first
                     (filter (fn [[_ spec]]
                               (not= :padding (spec :type)))
@@ -103,20 +105,7 @@
     (throw (new IllegalArgumentException value))
     (apply concat (for [[name spec] items]
                     (serialize spec (value name))))))
-;;;
-(defn array->bytes [{len :len element :element} value]
+
+(defmethod serialize :array
+  [{len :len element :element} value]
   (apply concat (map #(serialize element %) (take-exactly len value))))
-
-(defn serializer [type]
-  (case type
-    :int int->bytes
-    :float float->bytes
-    :string string->bytes
-    :struct struct->bytes
-    :array array->bytes
-    :padding (fn [{bc :bytes} _]
-               (repeat bc (byte 0)))
-    (throw (new IllegalArgumentException "unknown type: " type))))
-
-(defn serialize [spec data]
-  ((serializer (spec :type)) spec data))
