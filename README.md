@@ -2,41 +2,71 @@
 
 Parse C struct dumps in clojure.
 
-```
-(:require [parse_struct.core :refer [parse]
-          [parse_struct.common_types :as ct)
+## Installation:
 
-(parse ct/i16 byte-seq)
+```
+org.clojars.fctorial/parse-struct   {:mvn/version "0.6.0"}
+```
+
+## Usage:
+
+```
+(ns examples
+  (:require [parse_struct.core :refer [serialize deserialize type-size]]
+            [parse_struct.common-types :as ct]))
+
+(declare byte-seq)
+
+(deserialize ct/i16 byte-seq)
 ; short integer
 
-(parse {:type    :array
-        :len     20
-        :element ct/u32}
-       byte-seq)
-; lazyseq of unsigned integers (long actually) since java doesn't have unsigned
+(deserialize {:type    :array
+              :len     20
+              :element ct/u32}
+             byte-seq)
+; lazyseq of unsigned integers (long if they're too big, since java doesn't have unsigned. Large longs are stored in bigint)
 
-(parse {:type        :struct
-         :definition [[:a ct/i32]
-                      [:b {:type       :string
-                           :bytes      8
-                           :trim_nulls true}]]})
+(deserialize {:type        :struct
+              :definition [[:a ct/i32]
+                           [:b {:type       :string
+                                :bytes      8
+                                :trim_nulls true}]]}
+             byte-seq)
 ; a struct
 
-; strings are parsed like this:
-(new String <bytes seq> "ASCII")
+; For strings:
 ; :trim_nulls = true returns characters upto first null character,
-; :trim_nulls = false keeps them in string 
+; :trim_nulls = false keeps them in string
+
+(serialize ct/u64 123456)
+; serialize takes a spec of the same format, data which must conform to that spec (otherwise IllegalArgumentException)
+; and returns a seq of bytes
+
+(type-size {:type    :array
+            :len     12
+            :element {:type       :struct
+                      :definition [[:a  ct/i32]
+                                   [:b  ct/i16]]}})
+; type-size gives the byte count of a spec
 ```
 
 Structs and arrays can be arbitrarily nested.
 
+### Note:
+
+All numerical values are parsed as little endian
+
 ### TODO:
 
 * Configurable endianness
-* Serializing
-* Return seq when parsing structs
+* spec
 * support cljs
 
-### Note:
+### Tests:
 
 You'll need to have `rustc` installed to run tests.
+
+```
+clojure -A:test-setup
+clojure -A:test
+```

@@ -1,6 +1,6 @@
 (ns deserializing_test
   (:require [clojure.test :refer :all]
-            [parse_struct.core :refer [parse type-size]]
+            [parse_struct.core :refer [deserialize type-size]]
             [test_utils :refer [read-file]]
             [dump_defs :refer :all]))
 
@@ -11,6 +11,6 @@
                 dump_data (deref (ns-resolve 'dump_defs (symbol (str "dump" i "_data"))))]]
     (testing dump_file
       (let [bs (read-file dump_file)
-            parsed (parse dump_def bs)]
+            parsed (deserialize dump_def bs)]
         (is (= dump_data parsed))))))
 
